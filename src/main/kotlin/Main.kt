@@ -4,6 +4,7 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.math.exp
 import kotlin.system.exitProcess
 
 
@@ -12,7 +13,17 @@ object Main {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        if (args.size > 1) {
+        val expression = Expr.Binary(
+            Expr.Unary(
+                Token(TokenType.MINUS, "-", null, 1),
+                Expr.Literal(123)
+            ),
+            Token(TokenType.STAR, "*", null, 1),
+            Expr.Grouping(Expr.Literal(45.67))
+        )
+
+        println(AstPrinter().print(expression))
+        /*if (args.size > 1) {
             println("Usage: klox [script]")
             exitProcess(64)
         } else if (args.size == 1) {
@@ -20,6 +31,8 @@ object Main {
         } else {
             runPrompt()
         }
+
+         */
     }
 
 

@@ -30,7 +30,6 @@ object GenerateAst {
         val writer = PrintWriter(path, "UTF-8")
 
         writer.println()
-        //writer.println("import java.util.List;")
         writer.println()
         writer.println("abstract class $baseName {")
         defineVisitor(writer, baseName, types)
