@@ -33,12 +33,16 @@ object GenerateAst {
         //writer.println("import java.util.List;")
         writer.println()
         writer.println("abstract class $baseName {")
+        defineVisitor(writer, baseName, types)
 
         for (type in types) {
             val className = type.split("->").firstOrNull()?.trim()
             val fields = type.split("->").getOrNull(1)?.trim()
             defineType(writer, baseName, className, fields)
         }
+
+        writer.println()
+        writer.println("    abstract fun <R> accept(visitor: Visitor<R>) : R")
 
         writer.println("}")
         writer.close()
@@ -47,7 +51,20 @@ object GenerateAst {
     private fun defineType(writer: PrintWriter, baseName: String, className: String?, fieldList: String?) {
         val fields = fieldList?.split(",")?.map { it.trim() } ?: listOf()
         val fieldsString = fields.joinToString { "val $it" }
-        writer.println("    internal class $className($fieldsString) : $baseName()")
+        writer.println("    class $className($fieldsString) : $baseName() {")
+        writer.println("        override fun <R> accept(visitor: Visitor<R>) : R {")
+        writer.println("            return visitor.visit$className$baseName(this)")
+        writer.println("        }")
+        writer.println("    }")
+    }
 
+    private fun defineVisitor(writer: PrintWriter, baseName: String, types: List<String>) {
+        writer.println("    interface Visitor<R> {")
+        types.forEach {
+            val typeName = it.split("->").firstOrNull()?.trim()
+            writer.println("        fun visit$typeName$baseName(${baseName.lowercase()}: $typeName) : R")
+            //writer.println("    R visit $typeName $baseName ($typeName ${baseName.lowercase()})")
+        }
+        writer.println("    }")
     }
 }
