@@ -23,5 +23,6 @@ kotlin {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("GenerateAstKt")
+    //mainClass.set("MainKt")
 }
