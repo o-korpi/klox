@@ -1,5 +1,6 @@
 class AstPrinter : Expr.Visitor<String> {
-    fun print(expr: Expr): String {
+    fun print(expr: Expr?): String {
+        if (expr == null) return "null"
         return expr.accept(this)
     }
 

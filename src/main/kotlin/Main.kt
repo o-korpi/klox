@@ -13,17 +13,7 @@ object Main {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val expression = Expr.Binary(
-            Expr.Unary(
-                Token(TokenType.MINUS, "-", null, 1),
-                Expr.Literal(123)
-            ),
-            Token(TokenType.STAR, "*", null, 1),
-            Expr.Grouping(Expr.Literal(45.67))
-        )
-
-        println(AstPrinter().print(expression))
-        /*if (args.size > 1) {
+        if (args.size > 1) {
             println("Usage: klox [script]")
             exitProcess(64)
         } else if (args.size == 1) {
@@ -31,8 +21,6 @@ object Main {
         } else {
             runPrompt()
         }
-
-         */
     }
 
 
@@ -46,20 +34,35 @@ object Main {
         while (true) {
             print(">>> ")
             val line = BufferedReader(InputStreamReader(System.`in`)).readLine() ?: break
+            println("preline")
             run(line)
+            println("afterline")
             hadError = false
         }
     }
 
     private fun run(source: String) {
-        val tokens: List<Token> = Scanner(source).scanTokens()
-        for (token in tokens) {
-            println(token)
+        println("here??")
+        val expression = Parser(Scanner(source).scanTokens()).parse()
+        if (expression == null) {
+            println("asdasd")
+            return
         }
+        println("hello")
+        if (hadError) return
+        println("helo")
+        println(AstPrinter().print(expression))
     }
 
     fun error(line: Int, message: String) {
         report(line, "", message)
+    }
+
+    fun error(token: Token, message: String) {
+        if (token.type == TokenType.EOF)
+            report(token.line, " at end", message)
+        else
+            report(token.line, " at '${token.lexeme}'", message)
     }
 
     fun report(line: Int, where: String, message: String) {
