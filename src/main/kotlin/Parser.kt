@@ -1,4 +1,5 @@
 import TokenType.*
+import kotlin.math.exp
 
 class Parser(private val tokens: List<Token>) {
     internal class ParseError : RuntimeException()
@@ -12,17 +13,6 @@ class Parser(private val tokens: List<Token>) {
 
     private fun expression(): Expr {
         return equality()
-    }
-
-    private fun equality(): Expr {
-        var expr = comparison()
-
-        while (match(BANG_EQUAL, EQUAL_EQUAL)) {
-            val right = comparison()
-            expr = Expr.Binary(expr, previous(), right)
-        }
-
-        return expr
     }
 
     private fun match(vararg types: TokenType): Boolean {
@@ -49,42 +39,31 @@ class Parser(private val tokens: List<Token>) {
 
     private fun previous(): Token = tokens[current - 1]
 
-
-    private fun core(expr: Expr, rightMethod: () -> Expr): Expr.Binary {
-        return Expr.Binary(expr, previous(), rightMethod())
+    private fun binaryCore(vararg types: TokenType, rightMethod: () -> Expr): Expr {
+        var expr = rightMethod()
+        while (match(*types)) {
+            expr = Expr.Binary(expr, previous(), rightMethod())
+        }
+        return expr
     }
-    private fun comparison(): Expr {
-        var expr = term()
 
-        while(match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
-            expr = core(expr) { term() }
+
+    private fun equality(): Expr {
+        var expr = comparison()
+
+        while (match(BANG_EQUAL, EQUAL_EQUAL)) {
+            val right = comparison()
+            expr = Expr.Binary(expr, previous(), right)
         }
 
         return expr
     }
 
-    private fun term(): Expr {
-        var expr = factor()
+    private fun comparison(): Expr = binaryCore(GREATER_EQUAL, GREATER, LESS, LESS_EQUAL) { term() }
 
-        while (match(PLUS, MINUS)) {
-            val operator = previous()
-            val right = factor()
-            expr = Expr.Binary(expr, operator, right)
-        }
-        return expr
-    }
+    private fun term(): Expr = binaryCore(PLUS, MINUS) { factor() }
 
-    private fun factor(): Expr {
-        var expr = unary()
-
-        while (match(STAR, SLASH)) {
-            val operator = previous()
-            val right = unary()
-            expr = Expr.Binary(expr, operator, right)
-        }
-
-        return expr
-    }
+    private fun factor(): Expr = binaryCore(STAR, SLASH) { unary() }
 
     private fun unary(): Expr {
         if (match(BANG, MINUS)) {
@@ -102,9 +81,10 @@ class Parser(private val tokens: List<Token>) {
             return Expr.Literal(previous().literal)
         }
 
-        if (match(LEFT_BRACE)) {
+        if (match(LEFT_PAREN)) {
+            val expr = expression()
             consume(RIGHT_PAREN, "Expect ')' after expression.")
-            return Expr.Grouping(expression())
+            return Expr.Grouping(expr)
         }
 
         throw error(peek(), "Expect expression.")

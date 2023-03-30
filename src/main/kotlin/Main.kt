@@ -34,23 +34,14 @@ object Main {
         while (true) {
             print(">>> ")
             val line = BufferedReader(InputStreamReader(System.`in`)).readLine() ?: break
-            println("preline")
             run(line)
-            println("afterline")
             hadError = false
         }
     }
 
     private fun run(source: String) {
-        println("here??")
         val expression = Parser(Scanner(source).scanTokens()).parse()
-        if (expression == null) {
-            println("asdasd")
-            return
-        }
-        println("hello")
         if (hadError) return
-        println("helo")
         println(AstPrinter().print(expression))
     }
 
